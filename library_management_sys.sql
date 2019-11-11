@@ -1,6 +1,6 @@
 -- TODO: remove drop database
-DROP DATABASE library;
-CREATE DATABASE library;
+DROP DATABASE Library;
+CREATE DATABASE Library;
 USE library;
 
 CREATE TABLE Borrower(
@@ -9,7 +9,7 @@ CREATE TABLE Borrower(
     Lname varchar(20),
     CardID char(7),
     Btype varchar(20),
-    DepartmentNo int,
+    Department varchar(100),
     Email varchar(50),
     Sex varchar(1),
     Bdate date,
@@ -52,47 +52,49 @@ Values(2,"Library of Science and Technology");
 INSERT INTO Branch(Bno,Bname)
 Values(3,"Library of Arts and Literature");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("Sam","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
-INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,DepartmentNo,Email,Sex,Bdate,Phone)
+INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+
+
 
 
 
