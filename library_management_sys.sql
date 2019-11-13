@@ -53,46 +53,46 @@ INSERT INTO Branch(Bno,Bname)
 Values(3,"Library of Arts and Literature");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("John","L","Smith","1111111","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("Sam","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Sam","R","Westner","2222222","Faculty",1,"srw@gmail.com","M","1998-01-01","1896325874");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Zachary","J","Perry","3333333","Faculty",1,"zjp@gmail.com","M","1987-02-05","3946751248");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Oscar","M","Polonco","4444444","Faculty",1,"omp@gmail.com","M","1985-03-09","1234996525");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Joshua","W","Talter","5555555","Faculty",1,"jwt@gmail.com","M","1995-04-10","3325652548");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Kevin","V","Shmo","6666666","Faculty",1,"kvs@gmail.com","M","1987-05-22","3695825847");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Jimmothy","D","Tolini","7777777","Faculty",1,"jdt@gmail.com","M","1975-06-23","7985632598");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Michael","B","Rackner","8888888","Faculty",1,"mbr@gmail.com","M","1992-06-16","1114785259");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Rebecca","C","Taylor","9999999","Faculty",1,"rct@gmail.com","F","1996-07-17","1325698569");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Maddeline","T","Black","1234567","Faculty",1,"mtb@gmail.com","F","1996-08-19","3365289658");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Darline","J","Dasini","7654321","Faculty",1,"djd@gmail.com","F","1997-08-23","1313125632");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Jessica","L","Facht","0000000","Faculty",1,"jlf@gmail.com","F","1995-09-05","7878541259");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Joana","Q","Garcia","1212121","Faculty",1,"jqg@gmail.com","F","1989-09-14","3696369636");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
-Values("John","L","Smith","1234567","Faculty",1,"jls@gmail.com","M","1965-12-08","3109873425");
+Values("Brenda","E","Wo","4545454","Faculty",1,"bew@gmail.com","F","1988-11-02","4565456321");
 
 
 
