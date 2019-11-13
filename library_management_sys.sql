@@ -1,7 +1,7 @@
 -- TODO: remove drop database
 DROP DATABASE Library;
 CREATE DATABASE Library;
-USE library;
+USE Library;
 
 CREATE TABLE Borrower(
 	Fname varchar(20),
@@ -23,11 +23,11 @@ CREATE TABLE Employee(
 
 CREATE TABLE Books(
 	BookID char(6),
-    Btitle varchar(100),
+    Title varchar(100),
     Isbn varchar(13),
     PublishPress varchar(50),
     YearPublished int,
-    NumOfWords varchar(100),
+    WordCount varchar(100),
     Price int,
     Summary varchar(999)
 );
@@ -93,6 +93,29 @@ Values("Joana","Q","Garcia","1212121","Faculty",1,"jqg@gmail.com","F","1989-09-1
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
 Values("Brenda","E","Wo","4545454","Faculty",1,"bew@gmail.com","F","1988-11-02","4565456321");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("123456","Learn Python 101","1236547896325","The Coders",2005,"18325",63.25,"Become a beginner to master in Python");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("185526","Mastering Statistics","1111111111111","Penguin Press",2003,"10258",63.25,"This book makes statistics fun to learn");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("785825","Data Science","2323232323232","The Coders",2013,"12354",20.00,"Learn everything that is needed for a Data Science Career");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("111122","Book of Law","9639639639639","Dasi Press",1999,"28987",100.99,"Becoming the ultimate lawer has never been so easy");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("999636","Running A Business","2222888822228","Penguin Press",2016,"11256",59.99,"Learn to be an indepentent business entrepreneur");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("000258","OOP Design","3333333366666","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java");
+
+INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+Values("789456","The Court","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book");
+
+Select * From Books;
 
 
 
