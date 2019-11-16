@@ -16,8 +16,15 @@ CREATE TABLE Borrower(
     Phone varchar(12)
 );
 
+CREATE TABLE Online_System(
+	CardID char(7),
+    Username varchar(20),
+    Password varchar(20)
+);
+
 CREATE TABLE Employee(
 	Eno char(7),
+    BranchID int,
     Position varchar(15)
 );
 
@@ -28,28 +35,42 @@ CREATE TABLE Books(
     PublishPress varchar(50),
     YearPublished int,
     WordCount varchar(100),
-    Price int,
+    Price double,
     Summary varchar(999)
 );
 
-CREATE TABLE Book_Author(
-	Isbn varchar(13),
-	Fname varchar(20),
-    Lname varchar(20)
+CREATE TABLE Book_Copies(
+	BookID char(6),
+    BranchID int,
+    Copies int
+);
+
+CREATE TABLE Book_Authors(
+	BookID char(6),
+	Author_Name varchar(50)
 );
 
 CREATE TABLE Branch(
-	Bno int PRIMARY KEY,
+	BranchID int PRIMARY KEY,
 	Bname varchar(100)
 );
 
-INSERT INTO Branch(Bno,Bname)
+CREATE TABLE Loan_Type(
+	Type varchar(15),
+    Category varchar(15),
+    Max_Loaned int,
+    Loan_period int,
+    Extension int,
+    Late_Fine double
+);
+
+INSERT INTO Branch(BranchID,Bname)
 Values(1,"Library of Business and Management");
 
-INSERT INTO Branch(Bno,Bname)
+INSERT INTO Branch(BranchID,Bname)
 Values(2,"Library of Science and Technology");
 
-INSERT INTO Branch(Bno,Bname)
+INSERT INTO Branch(BranchID,Bname)
 Values(3,"Library of Arts and Literature");
 
 INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,Phone)
@@ -115,7 +136,79 @@ Values("000258","OOP Design","3333333366666","The Coders",2017,"20563",35.00,"Le
 INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
 Values("789456","The Court","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book");
 
-Select * From Books;
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("123456","Jack Weiss");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("123456","Sarah Cardington");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("185526","Sasha Brown");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("785825","Phil Spencer");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("785825","Sasha Brown");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("111122","Bob Washington");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("999636","Mark Rackner");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("000258","Gale Lackman");
+
+INSERT INTO Book_Authors(BookID,Author_Name)
+Values("789456","Alexandria Cortez");
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Faculty","English",12,90,30,0.2);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Faculty","Foreign",3,60,30,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Faculty","New",1,7,NULL,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Staff","English",7,60,30,0.2);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Staff","Foreign",1,30,30,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Staff","New",1,7,NULL,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Graduate","English",12,60,30,0.2);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Graduate","Foreign",3,60,30,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Graduate","New",1,7,NULL,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Undergraduate","English",8,60,30,0.2);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Undergraduate","Foreign",2,60,30,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Undergraduate","New",1,7,NULL,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Vocational","English",5,60,15,0.2);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Vocational","Foreign",1,30,15,0.5);
+
+INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
+Values("Vocational","New",1,7,NULL,0.5);
+
+Select * From Book_Authors;
 
 
 
