@@ -137,76 +137,35 @@ INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,S
 Values("789456","The Court","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book");
 
 INSERT INTO Book_Authors(BookID,Author_Name)
-Values("123456","Jack Weiss");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("123456","Sarah Cardington");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("185526","Sasha Brown");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("785825","Phil Spencer");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("785825","Sasha Brown");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("111122","Bob Washington");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("999636","Mark Rackner");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("000258","Gale Lackman");
-
-INSERT INTO Book_Authors(BookID,Author_Name)
-Values("789456","Alexandria Cortez");
+Values
+	("123456","Jack Weiss"),
+	("123456","Sarah Cardington"),
+	("185526","Sasha Brown"),
+	("785825","Phil Spencer"),
+	("785825","Sasha Brown"),
+	("111122","Bob Washington"),
+	("999636","Mark Rackner"),
+	("000258","Gale Lackman"),
+	("789456","Alexandria Cortez");
 
 INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Faculty","English",12,90,30,0.2);
+Values
+	("Faculty","English",12,90,30,0.2),
+	("Faculty","Foreign",3,60,30,0.5),
+	("Faculty","New",1,7,NULL,0.5),
+	("Staff","English",7,60,30,0.2),
+	("Staff","Foreign",1,30,30,0.5),
+	("Staff","New",1,7,NULL,0.5),
+	("Graduate","English",12,60,30,0.2),
+	("Graduate","Foreign",3,60,30,0.5),
+	("Graduate","New",1,7,NULL,0.5),
+	("Undergraduate","English",8,60,30,0.2),
+	("Undergraduate","Foreign",2,60,30,0.5),
+	("Undergraduate","New",1,7,NULL,0.5),
+	("Vocational","English",5,60,15,0.2),
+	("Vocational","Foreign",1,30,15,0.5),
+	("Vocational","New",1,7,NULL,0.5);
 
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Faculty","Foreign",3,60,30,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Faculty","New",1,7,NULL,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Staff","English",7,60,30,0.2);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Staff","Foreign",1,30,30,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Staff","New",1,7,NULL,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Graduate","English",12,60,30,0.2);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Graduate","Foreign",3,60,30,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Graduate","New",1,7,NULL,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Undergraduate","English",8,60,30,0.2);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Undergraduate","Foreign",2,60,30,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Undergraduate","New",1,7,NULL,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Vocational","English",5,60,15,0.2);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Vocational","Foreign",1,30,15,0.5);
-
-INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
-Values("Vocational","New",1,7,NULL,0.5);
 
 Select * From Book_Authors;
 
