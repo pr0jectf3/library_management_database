@@ -59,6 +59,7 @@ CREATE TABLE Books(
     WordCount varchar(100),
     Price double,
     Summary varchar(999),
+    Date_Registered date,
     PRIMARY KEY(BookID)
 );
 
@@ -71,7 +72,7 @@ CREATE TABLE Book_Authors(
 CREATE TABLE Book_Copies(
 	BookID char(6),
     BranchID int,
-    Copies int,
+    Copies varchar(15),
     PRIMARY KEY(BookID,BranchID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
@@ -101,6 +102,26 @@ BEGIN
     Values(NEW.CardID,NEW.CardID,date_format(NEW.Bdate,'%m%d%Y'));
 END;//
 DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER `check_new_book` BEFORE INSERT
+ON `Books`
+FOR EACH ROW
+BEGIN
+	IF datediff(CURDATE(),NEW.Date_Registered) < 60 THEN SET NEW.Category = "New";
+    END IF;
+END;//
+DELIMITER ;
+
+-- DELIMITER //
+-- CREATE TRIGGER `book_running_empty` AFTER UPDATE
+-- ON `Book_Copies`
+-- FOR EACH ROW
+-- BEGIN
+-- 	IF NEW.Copies = 0 THEN SET NEW.Copies = "LENT OUT";
+--     END IF;
+-- END;//
+-- DELIMITER ;
 
 INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
 Values
@@ -146,19 +167,19 @@ Values
     ("1212121",2,"Manager"),
     ("5555555",3,"Manager");
 
-INSERT INTO Books(BookID,Title,Isbn,PublishPress,YearPublished,WordCount,Price,Summary)
+INSERT INTO Books(BookID,Title,Category,Isbn,PublishPress,YearPublished,WordCount,Price,Summary,Date_Registered)
 Values
-	("123456","Learn Python 101","1236547896325","The Coders",2005,"18325",63.25,"Become a beginner to master in Python"),
-	("185526","Mastering Statistics","1111111111111","Penguin Press",2003,"10258",63.25,"This book makes statistics fun to learn"),
-	("785825","Data Science","2323232323232","The Coders",2013,"12354",20.00,"Learn everything that is needed for a Data Science Career"),
-	("111122","Book of Law","9639639639639","Dasi Press",1999,"28987",100.99,"Becoming the ultimate lawer has never been so easy"),
-	("999636","Running A Business","2222888822228","Penguin Press",2016,"11256",59.99,"Learn to be an indepentent business entrepreneur"),
-	("000258","OOP Design","3333333366666","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java"),
-	("789456","The Court","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book");
+	("123456","Learn Python 101","English","1236547896325","The Coders",2005,"18325",63.25,"Become a beginner to master in Python","2008-04-18"),
+	("185526","Mastering Statistics","English","1111111111111","Penguin Press",2003,"10258",63.25,"This book makes statistics fun to learn","2019-11-17"),
+	("785825","Data Science","English","2323232323232","The Coders",2013,"12354",20.00,"Learn everything that is needed for a Data Science Career","2010-12-23"),
+	("111122","Book of Law","English","9639639639639","Dasi Press",1999,"28987",100.99,"Becoming the ultimate lawer has never been so easy","2011-02-18"),
+	("999636","El Negocio","Foreign","2222888822228","Penguin Press",2016,"11256",59.99,"Learn to be a hispanic business entrepreneur","2017-06-04"),
+	("000258","OOP Design","English","3333333366666","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java","2008-08-19"),
+	("789456","The Court","English","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book","2003-01-16");
     
 INSERT INTO Book_Copies(BookID,BranchID,Copies)
 Values
-	("999636",1,4),
+	("999636",1,0),
     ("185526",1,6),
     ("123456",2,10),
     ("785825",2,5),
@@ -179,7 +200,11 @@ Values
 	("000258","Gale Lackman"),
 	("789456","Alexandria Cortez");
 
-Select * from Online_System;
+-- INSERT INTO Book_Loans(CardID,BookID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
+-- Values
+-- 	();
+
+Select * FROM Book_Copies;
 
 
 
