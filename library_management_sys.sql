@@ -179,14 +179,19 @@ Values
     
 INSERT INTO Book_Copies(BookID,BranchID,Copies)
 Values
-	("999636",1,0),
-    ("185526",1,6),
-    ("123456",2,10),
-    ("785825",2,5),
-    ("000258",2,35),
-    ("789456",3,10),
-    ("111122",3,1),
-    ("999636",3,4);
+    ("1111","999636",1,"Available"),
+    ("2222","999636",2,"Available"),
+    ("3333","185526",3,"Available"),
+    ("4444","185526",1,"Available"),
+    ("5555","123456",3,"Available"),
+    ("6666","123456",3,"Available"),
+    ("7777","785825",1,"Avaiable"),
+    ("8888","785825",3,"Available"),
+    ("9999","000258",2,"Available"),
+    ("1234","789456",1,"Available"),
+    ("5678","111122",2,"Available"),
+    ("1010","999636",3,"Available"),
+    ("1212","999636",1,"Available");
 
 INSERT INTO Book_Authors(BookID,Author_Name)
 Values
