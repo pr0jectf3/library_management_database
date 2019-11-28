@@ -4,12 +4,12 @@ CREATE DATABASE Library;
 USE Library;
 
 CREATE TABLE Loan_Type(
-	Type varchar(15),
+	Type varchar(20),
     Category varchar(20),
     Max_Loaned int,
     Loan_period int,
     Extension int,
-    Late_Fine double,
+    Late_Fine decimal(4,2),
     PRIMARY KEY(Type,Category)
 );
 
@@ -21,7 +21,7 @@ CREATE TABLE Borrower(
     Btype varchar(20),
     Department varchar(100),
     Email varchar(50),
-    Sex varchar(1),
+    Sex char(1),
     Bdate date,
     Phone varchar(12),
     PRIMARY KEY(CardID),
@@ -54,10 +54,10 @@ CREATE TABLE Books(
     Title varchar(100),
     Category varchar(20),
     Isbn varchar(13),
-    PublishPress varchar(50),
-    YearPublished int,
-    WordCount varchar(100),
-    Price double,
+    Publish_Press varchar(50),
+    Year_Published int,
+    Word_Count varchar(100),
+    Price decimal(8,2),
     Summary varchar(999),
     Date_Registered date,
     PRIMARY KEY(BookID)
@@ -70,28 +70,120 @@ CREATE TABLE Book_Authors(
 );
 
 CREATE TABLE Book_Copies(
+	CopyID char(4),
 	BookID char(6),
     BranchID int,
-    Copies varchar(15),
-    PRIMARY KEY(BookID,BranchID),
+    Status varchar(15),
+    PRIMARY KEY(CopyID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
 
 CREATE TABLE Book_Loans(
-	LoanID int auto_increment,
+	LoanID char(3),
     CardID char(7),
-    BookID char(6),
+    CopyID char(4),
     BranchID int,
     Date_Loaned date,
     Date_Expected date,
     Date_Returned date,
     Extensions_Taken int,
-    Fee double,
+    Fee decimal(9,2),
     PRIMARY KEY(LoanID),
     FOREIGN KEY(CardID) REFERENCES Borrower(CardID),
-    FOREIGN KEY(BookID) REFERENCES Books(BookID),
+    FOREIGN KEY(CopyID) REFERENCES Book_Copies(CopyID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
+
+DELIMITER $$
+CREATE PROCEDURE GetLoanPeriod(IN borrowerType varchar(20),IN category varchar(20), OUT days int)
+BEGIN
+	Select Loan_period Into days From Loan_Type Where Type = borrowerType And Category = category Limit 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE GetRenewalPeriod(IN borrowerType varchar(20),IN category varchar(20), OUT days int)
+BEGIN
+	Select Extension Into days From Loan_Type Where Type = borrowerType And Category = category Limit 1;
+END$$
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Borrow(IN Loan char(3),IN memberID char(7), IN Copy char(4), In date_borrowed date)
+BEGIN
+	Select Category Into @category From Books Where BookID IN(Select BookID From Book_Copies Where CopyID = Copy) Limit 1;
+    Select Btype Into @type From Borrower Where CardID = memberID Limit 1;
+    Select BranchID Into @branch From Book_Copies Where CopyID = Copy;
+    Select Late_Fine Into @fine From Loan_Type Where Type = @type And Category = @category;
+    Call GetLoanPeriod(@type,@category,@loanperiod);
+    Set @dateExpected = Date_add(date_borrowed, Interval @loanperiod Day);
+    Set @daysSinceExpected = datediff(CURDATE(),@dateExpected);
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > 90 Then
+		Set @fee = @daysSinceExpected * @fine;
+	End If;
+    
+    Insert Into Book_Loans(LoanID,CardID,CopyID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
+    Values(Loan,memberID,Copy,@branch,date_borrowed,@dateExpected,NULL,0,@fee);
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Renewal(IN Loan char(3))
+BEGIN
+	Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID In(Select CopyID From Book_Loans Where LoanID = Loan));
+    Select Btype Into @type From Borrower Where CardID In (Select CardID From Book_Loans Where LoanID = Loan);
+    Select Date_Expected Into @expected From Book_Loans Where LoanID = Loan;
+    Select Late_Fine Into @fine From Loan_Type Where Type = @type And Category = @category;
+    Call GetRenewalPeriod(@type,@category,@renewperiod);
+    Set @newExpected = Date_add(@expected, Interval @renewperiod Day);
+    Set @daysSinceExpected = datediff(CURDATE(),@newExpected);
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > 90 Then
+		Set @fee = @daysSinceExpected * @fine;
+	End If;
+    
+    Update Book_Loans Set Date_Expected = @newExpected, Extensions_Taken = Extensions_Taken+1, Fee = @fee Where LoanID = Loan;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ReturnBook(IN Loan char(3), IN Branch int, IN Rdate date)
+BEGIN
+    Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID In(Select CopyID From Book_Loans Where LoanID = Loan));
+    Select Btype Into @type From Borrower Where CardID In (Select CardID From Book_Loans Where LoanID = Loan);
+    Select Date_Expected Into @expected From Book_Loans Where LoanID = Loan;
+    Select Late_Fine,Loan_Period Into @fine,@period From Loan_Type Where Type = @type And Category = @category;
+    Set @daysSinceExpected = datediff(Rdate,@expected);
+    Select @daysSinceExpected;
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > @period Then
+		Set @fee = ABS(@daysSinceExpected) * @fine;
+	End If;
+    
+    Update Book_Loans Set Date_Returned = Rdate, Fee = @fee, BranchID = Branch Where LoanID = Loan;
+END //
+DELIMITER ;
+
+CREATE PROCEDURE Inquiry_Borrower(IN Card char(7))
+BEGIN
+	
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER `set_book_lent_out` AFTER INSERT
+ON `Book_Loans`
+FOR EACH ROW
+BEGIN
+	Update Book_Copies
+    Set Status = "Lent Out"
+    Where CopyID = NEW.CopyID;
+END;//
+DELIMITER ;
 
 DELIMITER //
 CREATE TRIGGER `create_online_acct` AFTER INSERT
@@ -100,6 +192,17 @@ FOR EACH ROW
 BEGIN
 	INSERT INTO Online_System(CardID,Username,Password)
     Values(NEW.CardID,NEW.CardID,date_format(NEW.Bdate,'%m%d%Y'));
+END;//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER `check_can_renew` BEFORE UPDATE
+ON `Book_Loans`
+FOR EACH ROW
+BEGIN
+	If OLD.Extensions_Taken > 1 Then
+		Signal sqlstate "45000" SET message_text = "BORROWER HAS REACHED THEIR MAXIMUM RENEWAL ON THIS LOAN";
+	END IF;
 END;//
 DELIMITER ;
 
@@ -114,8 +217,8 @@ END;//
 DELIMITER ;
 
 -- DELIMITER //
--- CREATE TRIGGER `book_running_empty` AFTER UPDATE
--- ON `Book_Copies`
+-- CREATE TRIGGER `can_borrow` Before Insert
+-- ON `Book_Loans`
 -- FOR EACH ROW
 -- BEGIN
 -- 	IF NEW.Copies = 0 THEN SET NEW.Copies = "LENT OUT";
@@ -157,9 +260,9 @@ Values
 
 INSERT INTO Branch(BranchID,Bname)
 Values
-	(1,"Library of Business and Management"),
-	(2,"Library of Science and Technology"),
-	(3,"Library of Arts and Literature");
+	(1,"Branch A"),
+	(2,"Branch B"),
+	(3,"Branch C");
 
 INSERT INTO Employee(EmployeeID,BranchID,Position)
 Values
@@ -167,7 +270,7 @@ Values
     ("1212121",2,"Manager"),
     ("5555555",3,"Manager");
 
-INSERT INTO Books(BookID,Title,Category,Isbn,PublishPress,YearPublished,WordCount,Price,Summary,Date_Registered)
+INSERT INTO Books(BookID,Title,Category,Isbn,Publish_Press,Year_Published,Word_Count,Price,Summary,Date_Registered)
 Values
 	("123456","Learn Python 101","English","1236547896325","The Coders",2005,"18325",63.25,"Become a beginner to master in Python","2008-04-18"),
 	("185526","Mastering Statistics","English","1111111111111","Penguin Press",2003,"10258",63.25,"This book makes statistics fun to learn","2019-11-17"),
@@ -177,7 +280,7 @@ Values
 	("000258","OOP Design","English","3333333366666","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java","2008-08-19"),
 	("789456","The Court","English","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book","2003-01-16");
     
-INSERT INTO Book_Copies(BookID,BranchID,Copies)
+INSERT INTO Book_Copies(CopyID,BookID,BranchID,Status)
 Values
     ("1111","999636",1,"Available"),
     ("2222","999636",2,"Available"),
@@ -205,11 +308,25 @@ Values
 	("000258","Gale Lackman"),
 	("789456","Alexandria Cortez");
 
--- INSERT INTO Book_Loans(CardID,BookID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
--- Values
--- 	();
+Call Borrow("123","1111111","1111","2018-11-27");
+Call Borrow("456","2222222","7777","2019-10-05");
+Call Borrow("789","3333333","3333","2019-01-23");
+Call Borrow("222","3333333","4444","2017-05-01");
+Call Borrow("111","3333333","2222","2019-02-10");
+Call Borrow("444","0000000","6666","2019-06-11");
+Call Borrow("999","9999999","1010","2019-08-18");
 
-Select * FROM Book_Copies;
+Call Renewal("222");
+Call Renewal("123");
+
+Call ReturnBook("222",1,"2017-08-27");
+
+Select * From Book_Loans;
+
+-- Call GetLoanPeriod('Faculty','English',@period);
+-- Select @period;
+
+-- Select Loan_period From Loan_Type Where Type = 'Faculty' And Category = 'English';
 
 
 
