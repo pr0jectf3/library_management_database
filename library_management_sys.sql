@@ -9,7 +9,7 @@ CREATE TABLE Loan_Type(
     Max_Loaned int,
     Loan_period int,
     Extension int,
-    Late_Fine double,
+    Late_Fine decimal(4,2),
     PRIMARY KEY(Type,Category)
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE Books(
     Publish_Press varchar(50),
     Year_Published int,
     Word_Count varchar(100),
-    Price double,
+    Price decimal(8,2),
     Summary varchar(999),
     Date_Registered date,
     PRIMARY KEY(BookID)
@@ -85,7 +85,9 @@ CREATE TABLE Book_Loans(
     BranchID int,
     Date_Loaned date,
     Date_Expected date,
+    Date_Returned date,
     Extensions_Taken int,
+    Fee decimal(9,2),
     PRIMARY KEY(LoanID),
     FOREIGN KEY(CardID) REFERENCES Borrower(CardID),
     FOREIGN KEY(CopyID) REFERENCES Book_Copies(CopyID),
@@ -112,10 +114,18 @@ BEGIN
 	Select Category Into @category From Books Where BookID IN(Select BookID From Book_Copies Where CopyID = Copy) Limit 1;
     Select Btype Into @type From Borrower Where CardID = memberID Limit 1;
     Select BranchID Into @branch From Book_Copies Where CopyID = Copy;
+    Select Late_Fine Into @fine From Loan_Type Where Type = @type And Category = @category;
     Call GetLoanPeriod(@type,@category,@loanperiod);
     Set @dateExpected = Date_add(date_borrowed, Interval @loanperiod Day);
-    Insert Into Book_Loans(LoanID,CardID,CopyID,BranchID,Date_Loaned,Date_Expected,Extensions_Taken)
-    Values(Loan,memberID,Copy,@branch,date_borrowed,@dateExpected,0);
+    Set @daysSinceExpected = datediff(CURDATE(),@dateExpected);
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > 90 Then
+		Set @fee = @daysSinceExpected * @fine;
+	End If;
+    
+    Insert Into Book_Loans(LoanID,CardID,CopyID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
+    Values(Loan,memberID,Copy,@branch,date_borrowed,@dateExpected,NULL,0,@fee);
 END //
 DELIMITER ;
 
@@ -125,8 +135,42 @@ BEGIN
 	Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID In(Select CopyID From Book_Loans Where LoanID = Loan));
     Select Btype Into @type From Borrower Where CardID In (Select CardID From Book_Loans Where LoanID = Loan);
     Select Date_Expected Into @expected From Book_Loans Where LoanID = Loan;
+    Select Late_Fine Into @fine From Loan_Type Where Type = @type And Category = @category;
     Call GetRenewalPeriod(@type,@category,@renewperiod);
-    Update Book_Loans Set Date_Expected = Date_add(@expected, Interval @renewperiod Day), Extensions_Taken = Extensions_Taken+1 Where LoanID = Loan;
+    Set @newExpected = Date_add(@expected, Interval @renewperiod Day);
+    Set @daysSinceExpected = datediff(CURDATE(),@newExpected);
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > 90 Then
+		Set @fee = @daysSinceExpected * @fine;
+	End If;
+    
+    Update Book_Loans Set Date_Expected = @newExpected, Extensions_Taken = Extensions_Taken+1, Fee = @fee Where LoanID = Loan;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE ReturnBook(IN Loan char(3), IN Branch int, IN Rdate date)
+BEGIN
+    Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID In(Select CopyID From Book_Loans Where LoanID = Loan));
+    Select Btype Into @type From Borrower Where CardID In (Select CardID From Book_Loans Where LoanID = Loan);
+    Select Date_Expected Into @expected From Book_Loans Where LoanID = Loan;
+    Select Late_Fine,Loan_Period Into @fine,@period From Loan_Type Where Type = @type And Category = @category;
+    Set @daysSinceExpected = datediff(Rdate,@expected);
+    Select @daysSinceExpected;
+    Set @fee = 0.00;
+    
+    If @daysSinceExpected > @period Then
+		Set @fee = ABS(@daysSinceExpected) * @fine;
+	End If;
+    
+    Update Book_Loans Set Date_Returned = Rdate, Fee = @fee, BranchID = Branch Where LoanID = Loan;
+END //
+DELIMITER ;
+
+CREATE PROCEDURE Inquiry_Borrower(IN Card char(7))
+BEGIN
+	
 END //
 DELIMITER ;
 
@@ -148,6 +192,17 @@ FOR EACH ROW
 BEGIN
 	INSERT INTO Online_System(CardID,Username,Password)
     Values(NEW.CardID,NEW.CardID,date_format(NEW.Bdate,'%m%d%Y'));
+END;//
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER `check_can_renew` BEFORE UPDATE
+ON `Book_Loans`
+FOR EACH ROW
+BEGIN
+	If OLD.Extensions_Taken > 1 Then
+		Signal sqlstate "45000" SET message_text = "BORROWER HAS REACHED THEIR MAXIMUM RENEWAL ON THIS LOAN";
+	END IF;
 END;//
 DELIMITER ;
 
@@ -253,17 +308,21 @@ Values
 	("000258","Gale Lackman"),
 	("789456","Alexandria Cortez");
 
--- INSERT INTO Book_Loans(LoanID,CardID,CopyID,Date_Loaned,Extensions_Taken)
--- Values
--- 	("123","1111111","1111","2019-05-15",0),
---     ("456","2222222","7777","2019-11-13",0),
---     ("789","3333333","3333","2019-06-04",0),
---     ("222","4444444","4444","2019-10-05",0),
---     ("111","0000000","2222","2019-11-12",0),
---     ("444","9999999","6666","2019-11-23",0);
+Call Borrow("123","1111111","1111","2018-11-27");
+Call Borrow("456","2222222","7777","2019-10-05");
+Call Borrow("789","3333333","3333","2019-01-23");
+Call Borrow("222","3333333","4444","2017-05-01");
+Call Borrow("111","3333333","2222","2019-02-10");
+Call Borrow("444","0000000","6666","2019-06-11");
+Call Borrow("999","9999999","1010","2019-08-18");
 
-Call Borrow("123","1111111","1111","2019-11-27");
-Select * From Book_Copies;
+Call Renewal("222");
+Call Renewal("123");
+
+Call ReturnBook("222",1,"2017-08-27");
+
+Select * From Book_Loans;
+
 -- Call GetLoanPeriod('Faculty','English',@period);
 -- Select @period;
 
