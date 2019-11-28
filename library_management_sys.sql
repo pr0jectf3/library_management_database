@@ -4,7 +4,7 @@ CREATE DATABASE Library;
 USE Library;
 
 CREATE TABLE Loan_Type(
-	Type varchar(15),
+	Type varchar(20),
     Category varchar(20),
     Max_Loaned int,
     Loan_period int,
@@ -21,7 +21,7 @@ CREATE TABLE Borrower(
     Btype varchar(20),
     Department varchar(100),
     Email varchar(50),
-    Sex varchar(1),
+    Sex char(1),
     Bdate date,
     Phone varchar(12),
     PRIMARY KEY(CardID),
@@ -54,9 +54,9 @@ CREATE TABLE Books(
     Title varchar(100),
     Category varchar(20),
     Isbn varchar(13),
-    PublishPress varchar(50),
-    YearPublished int,
-    WordCount varchar(100),
+    Publish_Press varchar(50),
+    Year_Published int,
+    Word_Count varchar(100),
     Price double,
     Summary varchar(999),
     Date_Registered date,
@@ -70,28 +70,76 @@ CREATE TABLE Book_Authors(
 );
 
 CREATE TABLE Book_Copies(
+	CopyID char(4),
 	BookID char(6),
     BranchID int,
-    Copies varchar(15),
-    PRIMARY KEY(BookID,BranchID),
+    Status varchar(15),
+    PRIMARY KEY(CopyID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
 
 CREATE TABLE Book_Loans(
-	LoanID int auto_increment,
+	LoanID char(3),
     CardID char(7),
-    BookID char(6),
+    CopyID char(4),
     BranchID int,
     Date_Loaned date,
     Date_Expected date,
-    Date_Returned date,
     Extensions_Taken int,
-    Fee double,
     PRIMARY KEY(LoanID),
     FOREIGN KEY(CardID) REFERENCES Borrower(CardID),
-    FOREIGN KEY(BookID) REFERENCES Books(BookID),
+    FOREIGN KEY(CopyID) REFERENCES Book_Copies(CopyID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
+
+DELIMITER $$
+CREATE PROCEDURE GetLoanPeriod(IN borrowerType varchar(20),IN category varchar(20), OUT days int)
+BEGIN
+	Select Loan_period Into days From Loan_Type Where Type = borrowerType And Category = category Limit 1;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE GetRenewalPeriod(IN borrowerType varchar(20),IN category varchar(20), OUT days int)
+BEGIN
+	Select Extension Into days From Loan_Type Where Type = borrowerType And Category = category Limit 1;
+END$$
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Borrow(IN Loan char(3),IN memberID char(7), IN Copy char(4), In date_borrowed date)
+BEGIN
+	Select Category Into @category From Books Where BookID IN(Select BookID From Book_Copies Where CopyID = Copy) Limit 1;
+    Select Btype Into @type From Borrower Where CardID = memberID Limit 1;
+    Select BranchID Into @branch From Book_Copies Where CopyID = Copy;
+    Call GetLoanPeriod(@type,@category,@loanperiod);
+    Set @dateExpected = Date_add(date_borrowed, Interval @loanperiod Day);
+    Insert Into Book_Loans(LoanID,CardID,CopyID,BranchID,Date_Loaned,Date_Expected,Extensions_Taken)
+    Values(Loan,memberID,Copy,@branch,date_borrowed,@dateExpected,0);
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Renewal(IN Loan char(3))
+BEGIN
+	Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID In(Select CopyID From Book_Loans Where LoanID = Loan));
+    Select Btype Into @type From Borrower Where CardID In (Select CardID From Book_Loans Where LoanID = Loan);
+    Select Date_Expected Into @expected From Book_Loans Where LoanID = Loan;
+    Call GetRenewalPeriod(@type,@category,@renewperiod);
+    Update Book_Loans Set Date_Expected = Date_add(@expected, Interval @renewperiod Day), Extensions_Taken = Extensions_Taken+1 Where LoanID = Loan;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE TRIGGER `set_book_lent_out` AFTER INSERT
+ON `Book_Loans`
+FOR EACH ROW
+BEGIN
+	Update Book_Copies
+    Set Status = "Lent Out"
+    Where CopyID = NEW.CopyID;
+END;//
+DELIMITER ;
 
 DELIMITER //
 CREATE TRIGGER `create_online_acct` AFTER INSERT
@@ -114,8 +162,8 @@ END;//
 DELIMITER ;
 
 -- DELIMITER //
--- CREATE TRIGGER `book_running_empty` AFTER UPDATE
--- ON `Book_Copies`
+-- CREATE TRIGGER `can_borrow` Before Insert
+-- ON `Book_Loans`
 -- FOR EACH ROW
 -- BEGIN
 -- 	IF NEW.Copies = 0 THEN SET NEW.Copies = "LENT OUT";
@@ -157,9 +205,9 @@ Values
 
 INSERT INTO Branch(BranchID,Bname)
 Values
-	(1,"Library of Business and Management"),
-	(2,"Library of Science and Technology"),
-	(3,"Library of Arts and Literature");
+	(1,"Branch A"),
+	(2,"Branch B"),
+	(3,"Branch C");
 
 INSERT INTO Employee(EmployeeID,BranchID,Position)
 Values
@@ -167,7 +215,7 @@ Values
     ("1212121",2,"Manager"),
     ("5555555",3,"Manager");
 
-INSERT INTO Books(BookID,Title,Category,Isbn,PublishPress,YearPublished,WordCount,Price,Summary,Date_Registered)
+INSERT INTO Books(BookID,Title,Category,Isbn,Publish_Press,Year_Published,Word_Count,Price,Summary,Date_Registered)
 Values
 	("123456","Learn Python 101","English","1236547896325","The Coders",2005,"18325",63.25,"Become a beginner to master in Python","2008-04-18"),
 	("185526","Mastering Statistics","English","1111111111111","Penguin Press",2003,"10258",63.25,"This book makes statistics fun to learn","2019-11-17"),
@@ -177,7 +225,7 @@ Values
 	("000258","OOP Design","English","3333333366666","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java","2008-08-19"),
 	("789456","The Court","English","7777777744444","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book","2003-01-16");
     
-INSERT INTO Book_Copies(BookID,BranchID,Copies)
+INSERT INTO Book_Copies(CopyID,BookID,BranchID,Status)
 Values
     ("1111","999636",1,"Available"),
     ("2222","999636",2,"Available"),
@@ -205,11 +253,21 @@ Values
 	("000258","Gale Lackman"),
 	("789456","Alexandria Cortez");
 
--- INSERT INTO Book_Loans(CardID,BookID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
+-- INSERT INTO Book_Loans(LoanID,CardID,CopyID,Date_Loaned,Extensions_Taken)
 -- Values
--- 	();
+-- 	("123","1111111","1111","2019-05-15",0),
+--     ("456","2222222","7777","2019-11-13",0),
+--     ("789","3333333","3333","2019-06-04",0),
+--     ("222","4444444","4444","2019-10-05",0),
+--     ("111","0000000","2222","2019-11-12",0),
+--     ("444","9999999","6666","2019-11-23",0);
 
-Select * FROM Book_Copies;
+Call Borrow("123","1111111","1111","2019-11-27");
+Select * From Book_Copies;
+-- Call GetLoanPeriod('Faculty','English',@period);
+-- Select @period;
+
+-- Select Loan_period From Loan_Type Where Type = 'Faculty' And Category = 'English';
 
 
 
