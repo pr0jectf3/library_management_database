@@ -181,20 +181,20 @@ BEGIN
 END;//
 DELIMITER ;
 
-
 DELIMITER //
 CREATE TRIGGER `check_before_returning_and_renewal` BEFORE UPDATE
 ON `Book_Loans`
 FOR EACH ROW
 BEGIN
-	Select Category into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID IN (Select LoanID From Book_Loans Where LoanID = OLD.LoanID));
+	Select datediff(CURDATE(),OLD.Date_Expected) Into @datediff From Book_Loans Where CardID = OLD.CardID;
+     
     
+    If @datediff > 0 Then
+		Signal sqlstate "45000" SET message_text = "RENEWAL REJECTED: BORROWER HAS AN OVERDUE BOOK";
+	END IF;
 	If OLD.Extensions_Taken > 1 Then
 		Signal sqlstate "45000" SET message_text = "RENEWAL REJECTED: BORROWER HAS REACHED THEIR MAXIMUM RENEWAL ON THIS LOAN";
 	END IF;
--- 	If @category = "New" Then
--- 		Signal sqlstate "45000" SET message_text = "RENEWAL REJECTED: SHORT LOANS CANNOT BE RENEWED";
--- 	END IF;
     If OLD.BranchID != NEW.BranchID Then
 		Signal sqlstate "45000" SET message_text = "RETURN REJECTED: BORROWER HAS ATTEMPTED TO RETURN AT THE WRONG BRANCH";
 	END IF;
@@ -225,14 +225,14 @@ BEGIN
 END;//
 DELIMITER ;
 
--- DELIMITER //
--- CREATE TRIGGER `check_before_borrowing` Before Insert
--- ON `Book_Loans`
--- FOR EACH ROW
--- BEGIN
--- 	-- what am i doing.
--- END;//
--- DELIMITER ;
+DELIMITER //
+CREATE TRIGGER `check_before_borrowing` Before Insert
+ON `Book_Loans`
+FOR EACH ROW
+BEGIN
+	
+END;//
+DELIMITER ;
 
 INSERT INTO Loan_Type(Type,Category,Max_Loaned,Loan_Period,Extension,Late_Fine)
 Values
@@ -322,16 +322,18 @@ Call Borrow("789","3333333","3333","2019-01-23");
 Call Borrow("222","3333333","4444","2017-05-01");
 Call Borrow("111","3333333","2222","2019-02-10");
 Call Borrow("444","0000000","1234","2019-06-11");
-Call Borrow("999","9999999","1010","2019-08-18");
+Call Borrow("999","9999999","1010","2019-10-18");
 
 
-Call Renewal("123");
+Call Renewal("999");
+-- -- Call Renewal("222");
 
-Call ReturnBook("222",1,"2018-11-02");
-Call ReturnBook("999",3,"2019-11-01");
-Select * From Books;
+-- Call ReturnBook("222",1,"2017-05-23");
+-- Select * From Book_Copies;
+-- Call ReturnBook("999",3,"2019-11-01");
 
-
+-- Call Borrow("221","3333333","4444","2019-11-28");
+Select * From Book_Loans;
 
 -- Select Loan_period From Loan_Type Where Type = 'Faculty' And Category = 'English';
 
