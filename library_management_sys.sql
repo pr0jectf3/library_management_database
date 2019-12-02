@@ -4,25 +4,25 @@ CREATE DATABASE Library;
 USE Library;
 
 CREATE TABLE Loan_Type(
-	Type varchar(50),
-    Category varchar(50),
-    Max_Loaned int,
-    Loan_period int,
-    Extension int,
+	Type varchar(50) Not Null,
+    Category varchar(50) Not Null, 
+    Max_Loaned int Not Null,
+    Loan_period int Not Null,
+    Extension int Not Null,
     Late_Fine decimal(4,2),
     PRIMARY KEY(Type,Category)
 );
 
 CREATE TABLE Borrower(
-	Fname varchar(20),
+	Fname varchar(20) Not Null,
     Minit char,
-    Lname varchar(20),
+    Lname varchar(20) Not Null,
     CardID char(7),
-    Btype varchar(50),
+    Btype varchar(50) Not Null,
     Department varchar(100),
     Email varchar(50),
     Sex char(1),
-    Bdate date,
+    Bdate date Not Null,
     Phone varchar(12),
     PRIMARY KEY(CardID),
     FOREIGN KEY(Btype) REFERENCES Loan_Type(Type)
@@ -37,13 +37,13 @@ CREATE TABLE Online_System(
 
 CREATE TABLE Branch(
 	BranchID int,
-	Bname varchar(100),
+	Bname varchar(100) Not Null,
     PRIMARY KEY(BranchID)
 );
 
 CREATE TABLE Employee(
 	EmployeeID char(7),
-    BranchID int,
+    BranchID int Not Null,
     Position varchar(15),
     PRIMARY KEY(EmployeeID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
@@ -52,7 +52,7 @@ CREATE TABLE Employee(
 CREATE TABLE Books(
 	BookID char(6),
     Title varchar(100),
-    Category varchar(20),
+    Category varchar(20) Not Null,
     Isbn char(17),
     Publish_Press varchar(50),
     Year_Published int,
@@ -83,7 +83,7 @@ CREATE TABLE Book_Loans(
     CardID char(7),
     CopyID char(4),
     BranchID int,
-    Date_Loaned date,
+    Date_Loaned date Not Null,
     Date_Expected date,
     Date_Returned date,
     Extensions_Taken int,
@@ -154,9 +154,25 @@ BEGIN
 END //
 DELIMITER ;
 
+DELIMITER //
 CREATE PROCEDURE Inquiry_Borrower(IN Card char(7))
 BEGIN
+	Select * From Book_Loans Where CardID = Card;
+END //
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Inquiry_Officer(IN Card char(7), IN Book char(6))
+BEGIN
+	If Card Is Not Null Then
+		Select * From Borrower Where CardID = Card;
+		Select * From Book_Loans Where CardID = Card;
+	End If;
 	
+    If Book Is Not Null Then
+		Select * From Books Where BookID = Book;
+		Select * From Book_Copies Where BookID = Book;
+	End If;
 END //
 DELIMITER ;
 
@@ -202,7 +218,7 @@ BEGIN
 		Signal sqlstate "45000" SET message_text = "RETURN REJECTED: BORROWER HAS ATTEMPTED TO RETURN AT THE WRONG BRANCH";
 	END IF;
     If OLD.Date_Loaned = NEW.Date_Returned Then
-		Signal sqlstate "45000" SET message_text = "RETURN REJECTED: BORROWER CANNOT RETURN A BOOK THE SAME DAY IT WAS BORROWED";
+		Signal sqlstate "45000" SET message_text = "RETURN REJECTED: BORROWER RETURN A BOOK THE SAME DAY IT WAS BORROWED";
 	END IF;
     
 END;//
@@ -239,12 +255,12 @@ BEGIN
     Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID = NEW.CopyID);
     Select Max_Loaned Into @max From Loan_Type Where Type = @type And Category = @category;
     Select Count(CopyID) Into @count From Book_Loans Where CopyID In
- 		(Select CopyID From Book_Copies Where BookID In(Select BookID From Books Where Category = @category)) And CardID = NEW.CardID;
+ 		(Select CopyID From Book_Copies Where BookID In(Select BookID From Books Where Category = @category)) And CardID = NEW.CardID And NEW.Date_Returned Is Null;
         
     If @fee > 0.00 Then
 		Signal sqlstate "45000" SET message_text = "LOAN REJECTED: BORROWER HAS FEES THAT ARE UNPAID";
 	End If;
-    If 	@count > @max Then
+    If 	@count = @max Then
 		Signal sqlstate "45000" SET message_text = "LOAN REJECTED: BORROWER HAS REACHED MAXIMUM LOANS IN THAT BOOK CATEGORY";
 	End If;
 END;//
@@ -341,34 +357,23 @@ Values
 Call Borrow("123","1111111","1111","2019-06-14");
 Call Borrow("456","2222222","7777","2019-10-23");
 Call Borrow("789","3333333","3333","2019-11-25");
-Call Borrow("222","3333333","4444","2019-11-25");
+Call Borrow("222","3333333","0890","2019-11-25");
 Call Borrow("111","3333333","2222","2019-08-24");
 Call Borrow("444","0000000","1234","2019-10-17");
 Call Borrow("999","9999999","1010","2019-06-18");
 Call Borrow("185","7654321","9999","2019-10-27");
 Call Borrow("264","1212121","3243","2019-11-15");
 Call Borrow("958","5555555","1946","2019-11-11");
-Call Borrow("134","4545454","1058","2019-07-01");
-
+Call Borrow("134","4545454","1058","2019-11-15");
 
 Call Renewal("958");
 Call Renewal("444");
 Call Renewal("185");
 Call Renewal("456");
+Call Renewal("134");
 
-Call ReturnBook("222",1,"2019-11-20");
+Call ReturnBook("222",2,"2019-11-20");
 Call ReturnBook("444",1,"2019-10-25");
 Call ReturnBook("789",3,"2019-11-24");
-Call ReturnBook("134",3,"2019-10-23");
+Call ReturnBook("134",3,"2019-12-01");
 Call ReturnBook("123",1,"2019-11-16");
-
-Select * From Borrower;
-
-
-
-
-
-
-
-
-
