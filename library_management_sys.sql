@@ -268,7 +268,7 @@ BEGIN
  		(Select CopyID From Book_Copies Where BookID In(Select BookID From Books Where Category = @category)) And CardID = NEW.CardID And NEW.Date_Returned Is Null;
         
     If @fee > 0.00 Then
-		Signal sqlstate "45000" SET message_text = "LOAN REJECTED: BORROWER HAS FEES THAT ARE UNPAID";
+		Signal sqlstate "45000" SET message_text = "LOAN REJECTED: BORROWER HAS FEES THAT ARE UNPAID OR AN OVERDUE BOOK";
 	End If;
     If 	@count = @max Then
 		Signal sqlstate "45000" SET message_text = "LOAN REJECTED: BORROWER HAS REACHED MAXIMUM LOANS IN THAT BOOK CATEGORY";

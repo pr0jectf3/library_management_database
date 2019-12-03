@@ -44,4 +44,7 @@ Select CopyID,Books.BookID,Title,Category,Status From Books
 -- Select Publish_Press,BranchID,Count(Publish_Press) as total From Books Join Book_Copies On Books.BookID = Book_Copies.BookID Group By BranchID,Publish_Press;
 Select BranchID,Publish_Press,total From 
 	(Select Publish_Press,BranchID,Count(Publish_Press) as total From Books Join Book_Copies 
-		On Books.BookID = Book_Copies.BookID Group By BranchID,Publish_Press) temp Order By total Desc Limit 3;
+		On Books.BookID = Book_Copies.BookID Group By BranchID,Publish_Press Order By total DESC) temp Group By BranchID;
+        
+Select Publish_Press,BranchID,Count(Publish_Press) as total From Books Join Book_Copies 
+		On Books.BookID = Book_Copies.BookID Group By BranchID,Publish_Press;
