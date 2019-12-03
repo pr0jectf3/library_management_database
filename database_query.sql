@@ -1,9 +1,13 @@
 
 -- 1
-Select BookID,Title From Books Where BookID In
-	(Select BookID From Book_Copies Where CopyID In
-		(Select CopyID From Book_Loans Join Borrower On 
-		Book_Loans.CardID = Borrower.CardID Where Btype = "Faculty" And Department = "Electrical Engineering"));
+Create View Books_Faculty_Borrowed As
+	Select BookID,Title From Books Where BookID In
+		(Select BookID From Book_Copies Where CopyID In
+			(Select CopyID From Book_Loans Join Borrower On 
+			Book_Loans.CardID = Borrower.CardID Where Btype = "Faculty" And Department = "Electrical Engineering"));
+Select * From Books_Faculty_Borrowed;
+Drop View Books_Faculty_Borrowed;
+
 
 -- 2
 Select Avg(books) From 
