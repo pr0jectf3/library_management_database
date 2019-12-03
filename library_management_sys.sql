@@ -19,8 +19,8 @@ CREATE TABLE Borrower(
     Lname varchar(20) Not Null,
     CardID char(7),
     Btype varchar(50) Not Null,
-    Department varchar(100),
-    Email varchar(50),
+    Department varchar(100) Not Null,
+    Email varchar(50) Not Null,
     Sex char(1),
     Bdate date Not Null,
     Phone varchar(12),
@@ -30,14 +30,14 @@ CREATE TABLE Borrower(
 
 CREATE TABLE Online_System(
 	CardID char(7),
-    Username varchar(20),
-    Password varchar(20),
+    Username varchar(20) Not Null,
+    Password varchar(20) Not Null,
     PRIMARY KEY(CardID)
 );
 
 CREATE TABLE Branch(
 	BranchID int,
-	Bname varchar(100) Not Null,
+	Bname varchar(100) Not Null Unique,
     PRIMARY KEY(BranchID)
 );
 
@@ -51,15 +51,15 @@ CREATE TABLE Employee(
 
 CREATE TABLE Books(
 	BookID char(6),
-    Title varchar(100),
+    Title varchar(100) Not Null,
     Category varchar(20) Not Null,
-    Isbn char(17),
+    Isbn char(17) Not Null Unique,
     Publish_Press varchar(50),
     Year_Published int,
     Word_Count varchar(100),
     Price decimal(8,2),
     Summary varchar(999),
-    Date_Registered date,
+    Date_Registered date Not Null,
     PRIMARY KEY(BookID)
 );
 
@@ -71,23 +71,23 @@ CREATE TABLE Book_Authors(
 
 CREATE TABLE Book_Copies(
 	CopyID char(4),
-	BookID char(6),
-    BranchID int,
-    Status varchar(15),
+	BookID char(6) Not Null,
+    BranchID int Not Null,
+    Status varchar(15) Not Null,
     PRIMARY KEY(CopyID),
     FOREIGN KEY(BranchID) REFERENCES Branch(BranchID)
 );
 
 CREATE TABLE Book_Loans(
 	LoanID char(3),
-    CardID char(7),
-    CopyID char(4),
-    BranchID int,
+    CardID char(7) Not Null,
+    CopyID char(4) Not Null,
+    BranchID int Not Null,
     Date_Loaned date Not Null,
-    Date_Expected date,
+    Date_Expected date Not Null,
     Date_Returned date,
-    Extensions_Taken int,
-    Fee decimal(9,2),
+    Extensions_Taken int Not Null,
+    Fee decimal(9,2) Not Null Default 0.00,
     PRIMARY KEY(LoanID),
     FOREIGN KEY(CardID) REFERENCES Borrower(CardID),
     FOREIGN KEY(CopyID) REFERENCES Book_Copies(CopyID),
@@ -146,7 +146,7 @@ BEGIN
     Set @daysSinceExpected = datediff(Rdate,@expected);
     Set @fee = 0.00;
     
-    If @daysSinceExpected > @period Then
+    If @daysSinceExpected > 0 Then
 		Set @fee = ABS(@daysSinceExpected) * @fine;
 	End If;
     
@@ -229,6 +229,7 @@ CREATE TRIGGER `action_aftet_returning` AFTER UPDATE
 ON `Book_Loans`
 FOR EACH ROW
 BEGIN
+
 	IF NEW.Date_Returned Is Not NULL THEN
 		Update Book_Copies Set Status = "Available" Where CopyID = OLD.CopyID;
     END IF;
@@ -241,6 +242,7 @@ ON `Books`
 FOR EACH ROW
 BEGIN
 	IF datediff(CURDATE(),NEW.Date_Registered) < 60 THEN SET NEW.Category = "New";
+    Elseif datediff(CURDATE(),NEW.Date_Registered) >= 60 And New.Category = "New" THEN SET NEW.Category = "English";
     END IF;
 END;//
 DELIMITER ;
@@ -250,9 +252,17 @@ CREATE TRIGGER `check_before_borrowing` Before Insert
 ON `Book_Loans`
 FOR EACH ROW
 BEGIN
+	Select BookID,Date_Registered,Category Into @book,@registration,@category From Books 
+		Where BookID In(Select BookID From Book_Copies Where CopyID = NEW.CopyID);
+    
+    If Datediff(CURDATE(),@registration) >= 60 And @category = "New" Then
+		Update Books Set Category = "English" Where BookID = @book;
+		Set @category = "English";
+	End If;
+	
 	Select Sum(Fee) Into @fee From Book_Loans Where CardID = NEW.CardID;
     Select Btype Into @type From Borrower Where CardID = NEW.CardID;
-    Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID = NEW.CopyID);
+    -- Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID = NEW.CopyID);
     Select Max_Loaned Into @max From Loan_Type Where Type = @type And Category = @category;
     Select Count(CopyID) Into @count From Book_Loans Where CopyID In
  		(Select CopyID From Book_Copies Where BookID In(Select BookID From Books Where Category = @category)) And CardID = NEW.CardID And NEW.Date_Returned Is Null;
@@ -290,13 +300,18 @@ Values
 	("Sam","R","Westner","2222222","Faculty","Electrical Engineering","srw@gmail.com","M","1998-01-01","1896325874"),
 	("Zachary","J","Perry","3333333","Vocational Student","Electrical Engineering","zjp@gmail.com","M","1987-02-05","3946751248"),
 	("Oscar","M","Polonco","4444444","Vocational Student","Electrical Engineering","omp@gmail.com","M","1985-03-09","1234996525"),
-	("Joshua","W","Talter","5555555","Staff","Business","jwt@gmail.com","M","1995-04-10","3325652548"),
+	("Joshua","W","Talter","5555555","Staff","Electrical Engineering","jwt@gmail.com","M","1995-04-10","3325652548"),
 	("Rebecca","C","Taylor","9999999","Undergraduate Student","Computer Science","rct@gmail.com","F","1996-07-17","1325698569"),
 	("Maddeline","T","Black","1234567","Undergraduate Student","Computer Science","mtb@gmail.com","F","1996-08-19","3365289658"),
 	("Darline","J","Dasini","7654321","Graduate Student","Computer Science","djd@gmail.com","F","1997-08-23","1313125632"),
 	("Jessica","L","Facht","0000000","Graduate Student","Finance","jlf@gmail.com","F","1995-09-05","7878541259"),
 	("Joana","Q","Garcia","1212121","Staff","Finance","jqg@gmail.com","F","1989-09-14","3696369636"),
-	("Brenda","E","Wo","4545454","Staff","Finance","bew@gmail.com","F","1988-11-02","4565456321");
+	("Brenda","E","Wo","4545454","Staff","Finance","bew@gmail.com","F","1988-11-02","4565456321"),
+    ("Thomas","L","Newer","0000001","Faculty","Electrical Engineering","tln@gmail.com","M","1965-06-01","1564526385"),
+    ("Richard","W","Toyer","0000002","Vocational Student","Finance","rwt@gmail.com","M","1978-01-12","0059473625"),
+    ("Samantha","P","Garcia","0000003","Undergraduate Student","Finance","spg@gmail.com","F","1989-12-13","2534555524"),
+    ("Sophia","B","Berard","0000004","Graduate Student","Finance","sbb@gmail.com","F","1967-12-09","7777774635"),
+    ("Sheree","K","Bankler","0000005","Staff","Finance","skb@gmail.com","F","1976-11-05","1048372645");
 
 INSERT INTO Branch(BranchID,Bname)
 Values
@@ -318,7 +333,10 @@ Values
 	("111122","Book of Law","English","963-9-6396-3963-9","Dasi Press",1999,"28987",100.99,"Becoming the ultimate lawer has never been so easy","2011-02-18"),
 	("999636","El Negocio","Foreign","222-2-8888-2222-8","Penguin Press",2016,"11256",59.99,"Learn to be a hispanic business entrepreneur","2017-06-04"),
 	("000258","OOP Design","English","333-3-3333-6666-6","The Coders",2017,"20563",35.00,"Learn Object Oriented Programming in Java","2008-08-19"),
-	("789456","The Court","English","777-7-7777-4444-4","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book","2003-01-16");
+	("789456","The Court","English","777-7-7777-4444-4","Dasi Press",2002,"25367",78.32,"Adapt to the situations in a court room with this book","2003-01-16"),
+    ("000100","Learn Money","English","577-7-3424-4444-4","Dasi Press",2013,"56367",45.00,"Learn how to use money and control the markets","2014-03-14"),
+    ("000200","The Basics of Everything","English","677-7-0948-4444-4","Penguin Press",2005,"34367",25.00,"Learning the basics of everything on this planet","2009-07-09"),
+    ("000300","Master Physics","New","677-7-4625-4444-4","Smart Press",2005,"34367",25.00,"Learning Physics","2017-04-09");
     
 INSERT INTO Book_Copies(CopyID,BookID,BranchID,Status)
 Values
@@ -340,11 +358,21 @@ Values
     ("1946","785825",1,"Avaiable"),
     ("2534","785825",3,"Available"),
     ("0890","000258",2,"Available"),
-    ("1212","999636",1,"Available");
+    ("1212","999636",1,"Available"),
+    ("0001","000100",2,"Available"),
+    ("0002","000100",2,"Available"),
+    ("0003","000100",2,"Available"),
+    ("0004","000200",3,"Available"),
+    ("0005","000200",1,"Available"),
+    ("0006","000200",2,"Available"),
+    ("0007","000300",2,"Available");
+    
 
 INSERT INTO Book_Authors(BookID,Author_Name)
 Values
 	("123456","Jack Weiss"),
+    ("000100","Jack Weiss"),
+    ("000200","Bob Washington"),
 	("123456","Sarah Cardington"),
 	("185526","Sasha Brown"),
 	("785825","Phil Spencer"),
@@ -366,14 +394,23 @@ Call Borrow("264","1212121","3243","2019-11-15");
 Call Borrow("958","5555555","1946","2019-11-11");
 Call Borrow("134","4545454","1058","2019-11-15");
 
+Call Borrow("100","0000002","5678","2019-10-15");
+Call Borrow("200","0000002","0002","2019-09-23");
+Call Borrow("300","0000003","0003","2019-10-26");
+Call Borrow("400","0000001","0004","2019-07-28");
+
 Call Renewal("958");
 Call Renewal("444");
 Call Renewal("185");
 Call Renewal("456");
 Call Renewal("134");
+Call Renewal("100");
+Call Renewal("300");
 
 Call ReturnBook("222",2,"2019-11-20");
 Call ReturnBook("444",1,"2019-10-25");
 Call ReturnBook("789",3,"2019-11-24");
 Call ReturnBook("134",3,"2019-12-01");
 Call ReturnBook("123",1,"2019-11-16");
+Call ReturnBook("400",3,curdate());
+Call ReturnBook("200",2,curdate());
