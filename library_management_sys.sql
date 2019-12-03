@@ -106,11 +106,11 @@ BEGIN
     Set @dateExpected = Date_add(date_borrowed, Interval @period Day);
     Set @daysSinceExpected = datediff(CURDATE(),@dateExpected);
     Set @fee = 0.00;
-    
-    If @daysSinceExpected > @period Then
+
+    If @daysSinceExpected > 0 Then
 		Set @fee = @daysSinceExpected * @fine;
 	End If;
-    
+
     Insert Into Book_Loans(LoanID,CardID,CopyID,BranchID,Date_Loaned,Date_Expected,Date_Returned,Extensions_Taken,Fee)
     Values(Loan,memberID,Copy,@branch,date_borrowed,@dateExpected,NULL,0,@fee);
 END //
@@ -128,7 +128,7 @@ BEGIN
     Set @daysSinceExpected = datediff(CURDATE(),@newExpected);
     Set @fee = 0.00;
     
-    If @daysSinceExpected > @period Then
+    If @daysSinceExpected > 0 Then
 		Set @fee = @daysSinceExpected * @fine;
 	End If;
     
@@ -262,8 +262,8 @@ BEGIN
 	
 	Select Sum(Fee) Into @fee From Book_Loans Where CardID = NEW.CardID;
     Select Btype Into @type From Borrower Where CardID = NEW.CardID;
-    -- Select Category Into @category From Books Where BookID In(Select BookID From Book_Copies Where CopyID = NEW.CopyID);
-    Select Max_Loaned Into @max From Loan_Type Where Type = @type And Category = @category;
+    Select Max_Loaned,Late_Fine Into @max,@fine From Loan_Type Where Type = @type And Category = @category;
+--     Set @diff = datediff(curdate(),NEW.Date_Expected);
     Select Count(CopyID) Into @count From Book_Loans Where CopyID In
  		(Select CopyID From Book_Copies Where BookID In(Select BookID From Books Where Category = @category)) And CardID = NEW.CardID And NEW.Date_Returned Is Null;
         
@@ -298,11 +298,11 @@ INSERT INTO Borrower(Fname,Minit,Lname,CardID,Btype,Department,Email,Sex,Bdate,P
 Values
 	("John","L","Smith","1111111","Faculty","Electrical Engineering","jls@gmail.com","M","1965-12-08","3109873425"),
 	("Sam","R","Westner","2222222","Faculty","Electrical Engineering","srw@gmail.com","M","1998-01-01","1896325874"),
-	("Zachary","J","Perry","3333333","Vocational Student","Electrical Engineering","zjp@gmail.com","M","1987-02-05","3946751248"),
+	("Zachary","J","Perry","3333333","Undergraduate Student","Electrical Engineering","zjp@gmail.com","M","1987-02-05","3946751248"),
 	("Oscar","M","Polonco","4444444","Vocational Student","Electrical Engineering","omp@gmail.com","M","1985-03-09","1234996525"),
 	("Joshua","W","Talter","5555555","Staff","Electrical Engineering","jwt@gmail.com","M","1995-04-10","3325652548"),
 	("Rebecca","C","Taylor","9999999","Undergraduate Student","Computer Science","rct@gmail.com","F","1996-07-17","1325698569"),
-	("Maddeline","T","Black","1234567","Undergraduate Student","Computer Science","mtb@gmail.com","F","1996-08-19","3365289658"),
+	("Maddeline","T","Black","1234567","Faculty","Computer Science","mtb@gmail.com","F","1996-08-19","3365289658"),
 	("Darline","J","Dasini","7654321","Graduate Student","Computer Science","djd@gmail.com","F","1997-08-23","1313125632"),
 	("Jessica","L","Facht","0000000","Graduate Student","Finance","jlf@gmail.com","F","1995-09-05","7878541259"),
 	("Joana","Q","Garcia","1212121","Staff","Finance","jqg@gmail.com","F","1989-09-14","3696369636"),
@@ -311,7 +311,8 @@ Values
     ("Richard","W","Toyer","0000002","Vocational Student","Finance","rwt@gmail.com","M","1978-01-12","0059473625"),
     ("Samantha","P","Garcia","0000003","Undergraduate Student","Finance","spg@gmail.com","F","1989-12-13","2534555524"),
     ("Sophia","B","Berard","0000004","Graduate Student","Finance","sbb@gmail.com","F","1967-12-09","7777774635"),
-    ("Sheree","K","Bankler","0000005","Staff","Finance","skb@gmail.com","F","1976-11-05","1048372645");
+    ("Sheree","K","Bankler","0000005","Graduate Student","Computer Science","skb@gmail.com","F","1976-11-05","1048372645"),
+    ("Pasindu","L","Siri","0000006","Graduate Student","Computer Science","pls@gmail.com","M","1996-11-05","1049072645");
 
 INSERT INTO Branch(BranchID,Bname)
 Values
@@ -384,16 +385,16 @@ Values
 
 Call Borrow("123","1111111","1111","2019-06-14");
 Call Borrow("456","2222222","7777","2019-10-23");
-Call Borrow("789","3333333","3333","2019-11-25");
 Call Borrow("222","3333333","0890","2019-11-25");
-Call Borrow("111","3333333","2222","2019-08-24");
+Call Borrow("789","3333333","3333","2019-11-25");
+Call Borrow("111","1234567","2222","2019-08-24");
 Call Borrow("444","0000000","1234","2019-10-17");
 Call Borrow("999","9999999","1010","2019-06-18");
 Call Borrow("185","7654321","9999","2019-10-27");
 Call Borrow("264","1212121","3243","2019-11-15");
 Call Borrow("958","5555555","1946","2019-11-11");
 Call Borrow("134","4545454","1058","2019-11-15");
-
+Call Borrow("500","0000005","6666","2019-10-31");
 Call Borrow("100","0000002","5678","2019-10-15");
 Call Borrow("200","0000002","0002","2019-09-23");
 Call Borrow("300","0000003","0003","2019-10-26");
